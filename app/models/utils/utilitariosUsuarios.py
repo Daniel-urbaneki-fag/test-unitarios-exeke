@@ -5,60 +5,143 @@ import re
 
 import utils
 
-# password = "daniel123"
-# password2 = "daniel123"
-
-# senha = bcrypt.hashpw(bytes(password, 'utf-8'), bcrypt.gensalt())
-# print(senha)
-
-# if bcrypt.checkpw(bytes(password2, 'utf-8'), senha):
-#     print("Logado")
-# else:
-#     print("It Does not Match :(")
-
 class UtilitariosUsuarios():
 
-    def cadastrarUsuario(self, nome, senha, cpf, email, logradouro, numero, 
-        complemento, bairro, cep, telefone, cidade, estado):
+    def excluirUsuario(self, usuario):
+        conn = sqlite3.connect('db.sqlite3')
+        
+        cursor = conn.cursor()
+
+        for dados in cursor.execute(""" SELECT * FROM usuarios WHERE cpf=?; """, (usuario,)):
+            if(dados):
+                cursor.execute("DELETE FROM usuarios WHERE cpf=?;", (usuario,))
+
+                conn.commit()
+                
+                conn.close()
+            
+                return "Dados EXCLUIDOS com sucesso."
+
+        return "Usuário não existe para a exclusão !"
+
+    def atualizarUsuario(self, usuario):
+        conn = sqlite3.connect('db.sqlite3')
+        cursor = conn.cursor()
+        for dados in cursor.execute(""" SELECT * FROM usuarios WHERE cpf=?; """, (usuario['alvo'],)):
+            if(dados):
+                newUsuario = {
+                    "nome" : dados[1],
+                    "senha" : dados[2],
+                    "cpf" : dados[3],
+                    "email" : dados[4],
+                    "logradouro" : dados[5],
+                    "numero" : dados[6],
+                    "complemento" : dados[7],
+                    "bairro" : dados[8],
+                    "cep" : dados[9],
+                    "telefone" : dados[10],
+                    "cidade" : dados[11],
+                    "estado" : dados[12],
+                }
+                for chave, valor in usuario.items():
+                    if valor != "":
+                        if chave == "nome" or chave == "logradouro" or chave == "complemento" or chave == "bairro" or chave == "cidade" or chave == "estado":
+                            newUsuario[chave] = valor.capitalize()
+                        if chave == "cpf":
+                            if(not self.validarCpf(valor)):
+                                return "Cnpj invalido"
+                            newUsuario[chave] = valor
+                        if chave == "telefone":
+                            if(len(valor) > 11):
+                                return "Telefone inválido"
+                            newUsuario[chave] = valor
+                        if chave == "email":
+                            if(not utils.Utils.validarEmail(valor)):
+                                return "Email invalido"
+                            newUsuario[chave] = valor
+                        if chave == "senha":
+                            newUsuario[chave] = bcrypt.hashpw(bytes(valor, 'utf-8'), bcrypt.gensalt())
+                        if chave == "cep":
+                            if(not utils.Utils.validarCep(valor)):
+                                return "Cep inválido"
+                            newUsuario[chave] = valor
+                        if chave == "numero":
+                            if(len(valor) > 4):
+                                return "Numero da casa inválido"
+                            newUsuario[chave] = valor
+
+                cursor.execute("""UPDATE usuarios SET 
+                    nome = ?, 
+                    senha = ?, 
+                    cpf = ?, 
+                    email = ?, 
+                    logradouro = ?, 
+                    numero = ?, 
+                    complemento = ?, 
+                    bairro = ?, 
+                    cep = ?, 
+                    telefone = ?, 
+                    cidade = ?, 
+                    estado = ?
+                    WHERE cpf=?
+                    ;""", (newUsuario["nome"], newUsuario["senha"], newUsuario["cpf"], newUsuario["email"], newUsuario["logradouro"], newUsuario["numero"], newUsuario["complemento"], newUsuario["bairro"], newUsuario["cep"], newUsuario["telefone"], newUsuario["cidade"], newUsuario["estado"], usuario['alvo']))
+
+                conn.commit()
+                
+                conn.close()
+            
+                return "Atualizado com sucesso."
+
+        return "Não existe o usuario solicitado !"
+
+    def cadastrarUsuario(self, usuario):
 
         self.criaTabelaUsuario()
 
-        nome = nome.capitalize()
+        usuario["nome"] = usuario["nome"].capitalize()
 
-        senha = bcrypt.hashpw(bytes(senha, 'utf-8'), bcrypt.gensalt())
+        usuario["senha"] = bcrypt.hashpw(bytes(usuario["senha"], 'utf-8'), bcrypt.gensalt())
 
-        if not self.validarCpf(cpf):
+        if not self.validarCpf(usuario["cpf"]):
             return "Cpf inválido"
         
-        if not utils.Utils.validarEmail(self.email):
-            return "Email invalido"
-        
-        logradouro = logradouro.capitalize()
-
-        if(len(numero) > 4):
-            return "Numero da casa inválido"
-        
-        complemento = complemento.capitalize()
-
-        bairro = bairro.capitalize()
-
-        if not utils.Utils.validarCep(cep):
-            return "Cep inválido"
-        
-        if len(telefone) > 11:
-            return "Telefone inválido"
-        
-        cidade = cidade.capitalize()
-
-        estado = estado.capitalize()
-
         conn = sqlite3.connect('db.sqlite3')
         cursor = conn.cursor()
+        
+        for dados in cursor.execute(""" SELECT * FROM usuarios WHERE cpf=?; """, (usuario["cpf"],)):
+            if(dados):
+               return "O cpf já está cadastrado !"
 
-        cursor.execute("""INSERT INTO usuarios (nome, cpf, email, logradouro, numero, 
+        if not utils.Utils.validarEmail(usuario["email"]):
+            return "Email invalido"
+        
+        usuario["logradouro"] = usuario["logradouro"].capitalize()
+
+        if(len(usuario["numero"]) > 4):
+            return "Numero da casa inválido"
+        
+        usuario["complemento"] = usuario["complemento"].capitalize()
+
+        usuario["bairro"]  = usuario["bairro"].capitalize()
+
+        if not utils.Utils.validarCep(usuario["cep"]):
+            return "Cep inválido"
+        
+        if len(usuario["telefone"]) > 11:
+            return "Telefone inválido"
+        
+        usuario["cidade"] = usuario["cidade"].capitalize()
+
+        usuario["estado"] = usuario["estado"].capitalize()
+
+        cursor.execute("""INSERT INTO usuarios (nome, senha, cpf, email, logradouro, numero, 
         complemento, bairro, cep, telefone, cidade, estado, criado_em)
         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
-        """, (nome, senha, cpf, email, logradouro, numero, complemento, bairro, cep, telefone, cidade, estado, datetime.today().strftime('%d-%m-%Y')))
+        """, (usuario["nome"], usuario["senha"], usuario["cpf"], usuario["email"], usuario["logradouro"], usuario["numero"], usuario["complemento"], usuario["bairro"], usuario["cep"], usuario["telefone"], usuario["cidade"], usuario["estado"], datetime.today().strftime('%d-%m-%Y')))
+
+        conn.commit()
+        conn.close()
+        return "Usuário cadastrado com sucesso!"
 
     def criaTabelaUsuario(self,):
         conn = sqlite3.connect('db.sqlite3')
@@ -72,7 +155,7 @@ class UtilitariosUsuarios():
                 email TEXT NOT NULL,
                 logradouro TEXT NOT NULL,
                 numero TEXT NOT NULL,
-                complemento TEXT NOT NULL,
+                complemento TEXT,
                 bairro TEXT NOT NULL,
                 cep TEXT NOT NULL,
                 telefone TEXT NOT NULL,
@@ -85,7 +168,7 @@ class UtilitariosUsuarios():
 
         return 'Tabela criada com sucesso.'
 
-    def validarCpf(cpf):
+    def validarCpf(self, cpf):
         # Verifica a formatação do CPF
         if not re.match(r'\d{3}\.\d{3}\.\d{3}-\d{2}', cpf):
             return False
