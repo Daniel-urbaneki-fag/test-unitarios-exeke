@@ -1,6 +1,7 @@
 import sqlite3
 from datetime import datetime
 from .utils.utils import Utils
+from .utils.message import message
 
 class Empresa():
 
@@ -26,32 +27,32 @@ class Empresa():
         self.razaoSocial = self.razaoSocial.upper()
 
         if(not Utils.validarCnpj(self.cnpj)):
-            return "Cnpj invalido"
+            return message("Cnpj inválido!", (220/255, 53/255, 69/255, 1))
 
         conn = sqlite3.connect('db.sqlite3')
         cursor = conn.cursor()
 
         for dados in cursor.execute(""" SELECT * FROM empresas WHERE cnpj=?; """, (self.cnpj,)):
             if(dados):
-               return "O cnpj já está cadastrado !"
+               return message("O cnpj já está cadastrado !", (220/255, 53/255, 69/255, 1))
         
         self.nomeFantasia = self.nomeFantasia.upper()
 
         if(len(self.telefone) > 11):
-            return "Telefone inválido"
+            return message("Telefone inválido", (220/255, 53/255, 69/255, 1))
         
         if(not Utils.validarEmail(self.email)):
-            return "Email invalido"
+            return message("Email invalido", (220/255, 53/255, 69/255, 1))
         
         if(not Utils.validarCep(self.cep)):
-            return "Cep inválido"
+            return message("Cep inválido", (220/255, 53/255, 69/255, 1))
         
         self.logradouro = self.logradouro.capitalize()
 
         self.bairro = self.bairro.capitalize()
         
         if(len(self.numero) > 4):
-            return "Numero da casa inválido"
+            return message("Numero da casa inválido", (220/255, 53/255, 69/255, 1))
         
         self.cidade = self.cidade.capitalize()
 
@@ -66,7 +67,7 @@ class Empresa():
 
         conn.commit()
         conn.close()
-        return "Dados inseridos com sucesso."
+        return message("Dados inseridos com sucesso!", (40/255, 167/255, 67/255, 1))
     
     def excluirEmpresa(self, razaoSocial):
         conn = sqlite3.connect('db.sqlite3')
