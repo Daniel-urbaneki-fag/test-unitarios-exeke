@@ -12,10 +12,10 @@ class TestExeke(unittest.TestCase):
         e1 = Empresa()
 
         # Caso exista a empresa SALDÃO
-        # self.assertEqual("Dados EXCLUIDOS com sucesso.", e1.excluirEmpresa("SALDÃO"))
+        self.assertEqual("Dados EXCLUIDOS com sucesso.", e1.excluirEmpresa("SALDÃO"))
 
         # Não existindo a empresa informada
-        self.assertEqual("Não existe empresa para a exclusão !", e1.excluirEmpresa("SALDÃO"))
+        # self.assertEqual("Não existe empresa para a exclusão !", e1.excluirEmpresa("SALDÃO"))
         
         print(e1.lerTabelaEmpresa())
 

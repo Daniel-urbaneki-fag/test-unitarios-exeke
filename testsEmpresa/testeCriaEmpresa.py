@@ -22,7 +22,7 @@ class TestExeke(unittest.TestCase):
             "443", "Cascavel", "Paraná", "Matriz")
       
         # Verifica o cnpj que ja está inserido no banco de dados
-        self.assertEqual("O cnpj já está cadastrado !", e1.cadastrarEmpresa())
+        # self.assertEqual("O cnpj já está cadastrado !", e1.cadastrarEmpresa())
 
         # Exclusão da empresa para tratar erros seguintes
         e1.excluirEmpresa('SALDÃO')

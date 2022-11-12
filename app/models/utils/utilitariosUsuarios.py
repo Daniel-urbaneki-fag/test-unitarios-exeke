@@ -7,6 +7,9 @@ import utils
 
 class UtilitariosUsuarios():
 
+    def __init__(self):
+        self.criaTabelaUsuario()
+
     def cadastrarUsuario(self, usuario):
 
         self.criaTabelaUsuario()
@@ -55,6 +58,110 @@ class UtilitariosUsuarios():
         conn.commit()
         conn.close()
         return "Usuário cadastrado com sucesso!"
+    
+    def atualizarUsuario(self, updateUsuario):
+        conn = sqlite3.connect('db.sqlite3')
+        cursor = conn.cursor()
+
+        for dados in cursor.execute(""" SELECT * FROM usuarios WHERE cpf=?; """, (updateUsuario['alvo'],)):
+            if(dados):
+                usuario = {
+                    "nome" : dados[1],
+                    "senha" : dados[2],
+                    "cpf" : dados[3],
+                    "email" : dados[4],
+                    "logradouro" : dados[5],
+                    "numero" : dados[6],
+                    "complemento" : dados[7],
+                    "bairro" : dados[8],
+                    "cep" : dados[9],
+                    "telefone" : dados[10],
+                    "cidade" : dados[11],
+                    "estado" : dados[12],
+                }
+
+                for chave, valor in updateUsuario.items():
+                    if valor != "":
+                        if chave == "nome" or chave == "logradouro" or chave == "complemento" or chave == "bairro" or chave == "cidade" or chave == "estado":
+                            usuario[chave] = valor.capitalize()
+                        if chave == "senha":
+                            usuario[chave] =  bcrypt.hashpw(bytes(valor, 'utf-8'), bcrypt.gensalt())
+                        if chave == "cpf":
+                            if not self.validarCpf(valor):
+                                return "Cpf inválido"
+                            usuario[chave] = valor
+                        if chave == "email":
+                            if not utils.Utils.validarEmail(usuario["email"]):
+                                return "Email invalido"
+                            usuario[chave] = valor
+                        if chave == "numero":
+                            if(len(valor) > 4):
+                                return "Numero da casa inválido"
+                            usuario[chave] = valor
+                        if chave == "cep":
+                            if not utils.Utils.validarCep(usuario["cep"]):
+                                return "Cep inválido"
+                            usuario[chave] = valor
+                        if chave == "telefone":
+                            if(len(valor) > 11):
+                                return "Telefone inválido"
+                            usuario[chave] = valor
+
+                cursor.execute(""" UPDATE usuarios SET 
+                                nome = ?,
+                                senha = ?,
+                                cpf = ?,
+                                email = ?,
+                                logradouro = ?,
+                                numero = ?,
+                                complemento = ?,
+                                bairro = ?,
+                                cep = ?,
+                                telefone = ?,
+                                cidade = ?,
+                                estado = ?
+                                WHERE cpf=?
+                                ;""",
+                    (usuario["nome"], usuario["senha"], usuario["cpf"], usuario["email"],
+                        usuario["logradouro"], usuario["numero"], usuario["complemento"], usuario["bairro"],
+                        usuario["cep"], usuario["telefone"], usuario["cidade"], usuario["estado"],
+                        updateUsuario['alvo']))
+
+                conn.commit()
+                
+                conn.close()
+            
+                return "Atualizado com sucesso."
+
+        return "Não existe usuario para a atualização !"
+    
+    def excluirUsuario(self, cpf):
+        conn = sqlite3.connect('db.sqlite3')
+        
+        cursor = conn.cursor()
+
+        for dados in cursor.execute(""" SELECT * FROM usuarios WHERE cpf=?; """, (cpf,)):
+            if(dados):
+                cursor.execute("DELETE FROM usuarios WHERE cpf=?;", (cpf,))
+
+                conn.commit()
+                
+                conn.close()
+            
+                return "Dados EXCLUIDOS com sucesso."
+
+        return "Não existe usuario para a exclusão !"
+    
+    def lerTabelaUsuarios(self):
+        conn = sqlite3.connect('db.sqlite3')
+        cursor = conn.cursor()
+
+        response = []
+
+        for dados in cursor.execute(""" SELECT id, nome, email, telefone FROM usuarios;"""):
+            dados = {"id" : dados[0], "nome" : dados[1], "email" : dados[2], "telefone" : dados[3]}
+            response.append(dados)
+        return ['Leitura de Usuarios.', response]
 
     def criaTabelaUsuario(self,):
         conn = sqlite3.connect('db.sqlite3')

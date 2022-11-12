@@ -11,9 +11,10 @@ class TestExeke(unittest.TestCase):
     
     def testAtualizarEmpresa(self):
 
-        e1 = Empresa("DANIEL SOFT", "26159125000152", "CALÇADOS", "45977685596", "esmeralda@hotmail.com", "85815025", "Avenida Brasil", "Pacaembu",
+        e1 = Empresa("DANIEL SOFT", "04630378000120", "CALÇADOS", "45977685596", "esmeralda@hotmail.com", "85815025", "Avenida Brasil", "Pacaembu",
             "443", "Cascavel", "Paraná", "Matriz")
-        # e1.cadastrarEmpresa()
+        # e1.excluirEmpresa("CENAP")
+        e1.cadastrarEmpresa()
 
         # dados de empresa em DICT Python, json
         empresa1 = {
@@ -41,7 +42,7 @@ class TestExeke(unittest.TestCase):
         empresa4 = deepcopy(empresa1)
         empresa4["cnpj"] = "26159225040152"
 
-        # print(e1.lerTabelaEmpresa()[1])
+        # print(e1.lerTabelaEmpresa())
 
         # Se existir empresa, e atualizado com sucesso
         self.assertEqual("Atualizado com sucesso.", e1.atualizarEmpresa(empresa1))

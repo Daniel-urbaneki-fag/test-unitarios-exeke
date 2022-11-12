@@ -23,7 +23,7 @@ class TestExeke(unittest.TestCase):
             "complemento" : "",
             "bairro" : "",
             "cep" : "",
-            "telefone" : "",
+            "telefone" : "45999998888",
             "cidade" : "",
             "estado" : "",
         }
